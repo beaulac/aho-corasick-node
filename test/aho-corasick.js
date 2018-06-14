@@ -1,5 +1,5 @@
 const assert = require('assert');
-const AhoCorasick = require('../aho-corasick');
+const AhoCorasick = require('../dist/AhoCorasick').AhoCorasick;
 
 describe('AhoCorasick', () => {
   let ac = null;
@@ -19,19 +19,19 @@ describe('AhoCorasick', () => {
         output: Int32Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 99]),
         codemap: Int32Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 97, 98, 97, 98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 110, 97, 110]),
       };
-      assert.deepEqual(ac.data, expectedData);
+      assert.deepStrictEqual(ac.data, expectedData);
     });
   });
 
   describe('match()', () => {
     it('should match keywords', () => {
       const text = 'banana';
-      assert.deepEqual(ac.match(text), ['b', 'ba', 'nan']);
+      assert.deepStrictEqual(ac.match(text), ['b', 'ba', 'nan']);
     });
 
     it('should match empty keywords', () => {
       const text = 'hello!';
-      assert.deepEqual(ac.match(text), []);
+      assert.deepStrictEqual(ac.match(text), []);
     });
   });
 });

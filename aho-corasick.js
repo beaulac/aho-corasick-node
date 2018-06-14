@@ -188,7 +188,7 @@ const convert = (codes) => {
   return bytebuffer.wrap(arr.buffer).toUTF8();
 };
 
-const search = (ac, text) => {
+function search(ac, text) {
   const result = [];
   const codes = bytebuffer.fromUTF8(text).toBuffer();
   let currentIndex = ROOT_INDEX;
@@ -204,7 +204,7 @@ const search = (ac, text) => {
     currentIndex = nextIndex;
   });
   return _.uniq(result).sort();
-};
+}
 
 const arrayToInt32Array = (arr) => {
   const int32Array = new Int32Array(arr.length);
