@@ -5,14 +5,14 @@ import { TrieNode } from './TrieNode';
 
 const ROOT_INDEX = 1;
 
-type WordBuffer = Array<number>;
+type StateIndexArray = Array<number>;
 
 export interface RawAC {
-    base: WordBuffer;
-    check: WordBuffer;
-    failurelink: WordBuffer;
-    output: WordBuffer;
-    codemap: WordBuffer;
+    base: StateIndexArray;
+    check: StateIndexArray;
+    failurelink: StateIndexArray;
+    output: StateIndexArray;
+    codemap: StateIndexArray;
 }
 
 export type CompactedAC = {
@@ -28,28 +28,6 @@ export interface AcState {
     index: number;
 }
 
-function calcBase(da, index, children) {
-    let base = 1;
-    if (index - children[0].code > base) {
-        base = (index - children[0].code) + 1;
-    }
-    for (; ;) {
-        let used = false;
-        for (let i = 0; i < children.length; i++) {
-            const nextState = base + children[i].code;
-            if (da.check[nextState]) {
-                used = true;
-                break;
-            }
-        }
-        if (used) {
-            base += 1;
-        } else {
-            break;
-        }
-    }
-    return base;
-}
 
 function findFailureLink(currentState: TrieNode, code: ArrayBuffer) {
     const link = currentState.failurelink;
@@ -71,9 +49,7 @@ function compactAC(ac: RawAC): CompactedAC {
 
 export class Builder {
 
-    words: string[] = [];
-
-    private ac = {
+    private ac: RawAC = {
         base: [],
         check: [],
         failurelink: [],
@@ -83,7 +59,7 @@ export class Builder {
 
     private root = new TrieNode();
 
-    constructor() {
+    constructor(public words: string[] = []) {
     }
 
     add(word: string) {
@@ -98,20 +74,18 @@ export class Builder {
     }
 
     private buildDoubleArray(rootIndex, baseTrie) {
-        const stack = [{ state: baseTrie, index: rootIndex }];
+        const stack: AcState[] = [{ state: baseTrie, index: rootIndex }];
         while (!_.isEmpty(stack)) {
             const { state, index } = stack.pop();
             state.index = index;
             if (state.code) {
                 this.ac.codemap[index] = state.code;
             }
-            if (!_.isEmpty(state.children)) {
-                const v = calcBase(this.ac, index, state.children);
-                if (state.pattern) {
-                    this.ac.base[index] = -v;
-                } else {
-                    this.ac.base[index] = v;
-                }
+            if (state.hasChildren) {
+                const v = state.calcBase(this.ac.check);
+
+                this.ac.base[index] = state.pattern ? -v : v;
+
                 // set check
                 _.forEach(state.children, (child) => {
                     const nextState = v + child.code;
@@ -123,7 +97,7 @@ export class Builder {
     }
 
     private buildAC() {
-        const baseTrie = this.buildBaseTrie();
+        const baseTrie = this.root;
 
         const queue = [];
         _.forEach(baseTrie.children, (child) => {
