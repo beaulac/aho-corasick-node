@@ -1,19 +1,31 @@
 import * as _ from 'lodash';
 import { AhoCorasick } from './AhoCorasick';
 import { arrayToInt32Array, stringToBuffer } from './utils';
+import { TrieNode } from './TrieNode';
 
 const ROOT_INDEX = 1;
 
+type WordBuffer = Array<number>;
+
 export interface RawAC {
-    base: Int32Array;
-    check: Int32Array;
-    failurelink: Int32Array;
-    output: Int32Array;
-    codemap: Int32Array;
+    base: WordBuffer;
+    check: WordBuffer;
+    failurelink: WordBuffer;
+    output: WordBuffer;
+    codemap: WordBuffer;
+}
+
+export type CompactedAC = {
+    [K in keyof RawAC]: Int32Array
 }
 
 export type ExportedAC = {
     [K in keyof RawAC]: string;
+}
+
+export interface AcState {
+    state: TrieNode;
+    index: number;
 }
 
 function calcBase(da, index, children) {
@@ -39,78 +51,23 @@ function calcBase(da, index, children) {
     return base;
 }
 
-const isRoot = baseTrie => !baseTrie.code;
-
 function findFailureLink(currentState: TrieNode, code: ArrayBuffer) {
     const link = currentState.failurelink;
     const index = _.findIndex(link.children, child => child.code === code);
     if (index >= 0) {
         return link.children[index];
     }
-    if (isRoot(link)) {
+    if (link.isRoot) {
         return link;
     }
     return findFailureLink(link, code);
 }
 
-function buildDoubleArray(rootIndex, baseTrie, doubleArray) {
-    const stack = [{ state: baseTrie, index: rootIndex }];
-    while (!_.isEmpty(stack)) {
-        const { state, index } = stack.pop();
-        state.index = index;
-        if (state.code) {
-            doubleArray.codemap[index] = state.code;
-        }
-        if (!_.isEmpty(state.children)) {
-            const v = calcBase(doubleArray, index, state.children);
-            if (state.pattern) {
-                doubleArray.base[index] = -v;
-            } else {
-                doubleArray.base[index] = v;
-            }
-            // set check
-            _.forEach(state.children, (child) => {
-                const nextState = v + child.code;
-                doubleArray.check[nextState] = index;
-                stack.push({ state: child, index: nextState });
-            });
-        }
-    }
+
+function compactAC(ac: RawAC): CompactedAC {
+    return _.mapValues(ac, arrayToInt32Array) as CompactedAC;
 }
 
-function compactAC(ac) {
-    return ({
-        base: arrayToInt32Array(ac.base),
-        check: arrayToInt32Array(ac.check),
-        failurelink: arrayToInt32Array(ac.failurelink),
-        output: arrayToInt32Array(ac.output),
-        codemap: arrayToInt32Array(ac.codemap),
-    });
-}
-
-class TrieNode {
-    failurelink?: TrieNode;
-    pattern?: string | boolean;
-    index?: number;
-
-    public children: ChildNode[] = [];
-
-    findOrCreateWithCode(code: any) {
-        let found = this.children.find(c => c.code === code);
-        if (!found) {
-            found = new ChildNode(code);
-            this.children.push(found);
-        }
-        return found;
-    }
-
-}
-
-class ChildNode extends TrieNode {
-    constructor(public code: any) {
-        super();
-    }
-}
 
 export class Builder {
 
@@ -135,9 +92,34 @@ export class Builder {
 
     build() {
         const baseTrie = this.buildBaseTrie();
-        buildDoubleArray(ROOT_INDEX, baseTrie, this.ac);
+        this.buildDoubleArray(ROOT_INDEX, baseTrie);
         this.buildAC();
         return new AhoCorasick(compactAC(this.ac));
+    }
+
+    private buildDoubleArray(rootIndex, baseTrie) {
+        const stack = [{ state: baseTrie, index: rootIndex }];
+        while (!_.isEmpty(stack)) {
+            const { state, index } = stack.pop();
+            state.index = index;
+            if (state.code) {
+                this.ac.codemap[index] = state.code;
+            }
+            if (!_.isEmpty(state.children)) {
+                const v = calcBase(this.ac, index, state.children);
+                if (state.pattern) {
+                    this.ac.base[index] = -v;
+                } else {
+                    this.ac.base[index] = v;
+                }
+                // set check
+                _.forEach(state.children, (child) => {
+                    const nextState = v + child.code;
+                    this.ac.check[nextState] = index;
+                    stack.push({ state: child, index: nextState });
+                });
+            }
+        }
     }
 
     private buildAC() {
@@ -183,15 +165,10 @@ export class Builder {
     }
 
     private addWordBuffer(wordBuffer: Int8Array) {
-        _.reduce(wordBuffer,
-                 (node: TrieNode, code: number, pos: number) => {
-                     const current = node.findOrCreateWithCode(code);
-                     if (pos === wordBuffer.byteLength - 1) {
-                         current.pattern = true;
-                     }
-                     return current;
-                 },
-                 this.root,
+        const lastCharacterNode = wordBuffer.reduce(
+            (node: TrieNode, charCode: number) => node.findOrCreateWithCode(charCode),
+            this.root,
         );
+        lastCharacterNode.pattern = true;
     }
 }
