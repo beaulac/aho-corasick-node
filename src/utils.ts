@@ -1,7 +1,5 @@
 import * as bytebuffer from 'bytebuffer';
-import * as _ from 'lodash';
-import { ExportedAC} from './AcCommon';
-import { CompactedAC, RawAC } from './AcCommon';
+import { CompactedAC, ExportedAC, RawAC } from './AcCommon';
 
 export function arrayToInt32Array(arr: number[]) {
     return Int32Array.from(arr);
@@ -27,9 +25,22 @@ export function stringToBuffer(s: string): Int8Array {
 }
 
 export function exportAC(ac: CompactedAC): ExportedAC {
-    return _.mapValues(ac, int32ArrayToHex) as ExportedAC;
+    return mapValues(ac, int32ArrayToHex) as ExportedAC;
 }
 
 export function compactAC(ac: RawAC): CompactedAC {
-    return _.mapValues(ac, arrayToInt32Array) as CompactedAC;
+    return mapValues(ac, arrayToInt32Array) as CompactedAC;
+}
+
+function mapValues<T extends object, TResult>(obj: T,
+                                              cb: (value: T[keyof T],
+                                                   key: string,
+                                                   collection: T) => TResult): { [P in keyof T]: TResult } {
+    return (Object.keys(obj))
+        .reduce((acc: any, k: string, _idx: number) => {
+                    acc[k] = cb(obj[k as keyof T], k, obj);
+                    return acc;
+                },
+                {} as { [P in keyof T]: TResult },
+        );
 }

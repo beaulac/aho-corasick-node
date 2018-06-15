@@ -14,12 +14,10 @@
   "author": "guofei",
   "license": "MIT",
   "dependencies": {
-    "bytebuffer": "^5.0.1",
-    "lodash": "^4.17.10"
+    "bytebuffer": "^5.0.1"
   },
   "devDependencies": {
     "@types/bytebuffer": "^5.0.37",
-    "@types/lodash": "^4.14.109",
     "mocha": "^5.1.1",
     "typescript": "^2.9.2"
   }
