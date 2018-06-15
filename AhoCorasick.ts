@@ -1,34 +1,35 @@
-import { convert, hexToInt32Array, int32ArrayToHex, stringToBuffer } from './utils';
+import { compactAC, convert, int32ArrayToHex, stringToBuffer } from './utils';
 import * as _ from 'lodash';
-import { Builder } from './AcBuilder';
+import { Builder, CompactedAC, RawAC } from './AcBuilder';
 
 const ROOT_INDEX = 1;
 
 export class AhoCorasick {
-    constructor(public data) {
+
+    private currentIndex = ROOT_INDEX;
+
+    constructor(public data: CompactedAC) {
     }
 
-    match(text) {
-        return this.search(text);
-    }
-
-    private search(text) {
+    public match(text) {
         const result = [];
         const codes = stringToBuffer(text);
-        let currentIndex = ROOT_INDEX;
 
         _.forEach(codes, (code) => {
-            const nextIndex = this.getNextIndex(currentIndex, code);
+            const nextIndex = this.getNextIndex(code);
 
-            if (this.data.base[nextIndex] < 0 || !this.data.base[nextIndex]) {
+            const nextBase = this.data.base[nextIndex];
+            if (~~nextBase <= 0) {
                 result.push(convert(this.getPattern(nextIndex)));
             }
             const outputs = this.getOutputs(nextIndex);
             _.forEach(outputs, (output) => {
                 result.push(convert(output));
             });
-            currentIndex = nextIndex;
+            this.currentIndex = nextIndex;
         });
+
+        this.currentIndex = ROOT_INDEX;
 
         return _.uniq(result).sort();
     }
@@ -36,28 +37,23 @@ export class AhoCorasick {
     private getOutputs(index) {
         const output = this.data.output[index];
         if (output) {
-            return [this.getPattern(output)].concat(this.getOutputs(output));
+            return [...this.getPattern(output), ...this.getOutputs(output)];
         }
         return [];
     }
 
-    getPattern(index) {
-        if (index <= ROOT_INDEX) {
-            return [];
-        }
-        const code = this.data.codemap[index];
-        const parent = this.data.check[index];
-        const res = this.getPattern(parent);
-        res.push(code);
-        return res;
+    getPattern(index): number[] {
+        return index > ROOT_INDEX
+            ? [...this.getPattern(this.data.check[index]), this.data.codemap[index]]
+            : [];
     }
 
-    private getNextIndex(currentIndex, code) {
-        const nextIndex = this.getBase(currentIndex) + code;
-        if (nextIndex && this.data.check[nextIndex] === currentIndex) {
+    private getNextIndex(code) {
+        const nextIndex = this.getBase(this.currentIndex) + code;
+        if (nextIndex && this.data.check[nextIndex] === this.currentIndex) {
             return nextIndex;
         }
-        return this.getNextIndexByFailure(this.data, currentIndex, code);
+        return this.getNextIndexByFailure(this.data, this.currentIndex, code);
     }
 
     private getNextIndexByFailure(ac, currentIndex, code) {
@@ -83,8 +79,8 @@ export class AhoCorasick {
         return _.mapValues(this.data, int32ArrayToHex);
     }
 
-    static from(buffers) {
-        return new AhoCorasick(_.mapValues(buffers, hexToInt32Array));
+    static from(buffers: RawAC) {
+        return new AhoCorasick(compactAC(buffers));
     }
 
     static builder() {
