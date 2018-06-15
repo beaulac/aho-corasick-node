@@ -1,6 +1,5 @@
 import { compactAC, convert, exportAC, stringToBuffer } from './utils';
-import * as _ from 'lodash';
-import { Builder} from './AcBuilder';
+import { Builder } from './AcBuilder';
 import { CharCode, CompactedAC, RawAC, ROOT_INDEX, StateIdx } from './AcCommon';
 
 export interface AcMatch {
@@ -16,8 +15,8 @@ export class AhoCorasick {
     constructor(public data: CompactedAC) {
     }
 
-    public match(text: string) {
-        const result: string[] = [];
+    public match(text: string): string[] {
+        const matches = new Set<string>();
         const codes = stringToBuffer(text);
 
         codes.forEach(
@@ -26,12 +25,12 @@ export class AhoCorasick {
 
                 const nextBase = this.data.base[nextIndex];
                 if (~~nextBase <= 0) {
-                    result.push(convert(this.getPattern(nextIndex)));
+                    matches.add(convert(this.getPattern(nextIndex)));
                 }
 
                 // Is this really needed?
                 this.getOutputs(nextIndex)
-                    .forEach((output: CharCode[]) => result.push(convert(output)));
+                    .forEach((output: CharCode[]) => matches.add(convert(output)));
 
                 this.currentState = nextIndex;
             },
@@ -39,7 +38,7 @@ export class AhoCorasick {
 
         this.currentState = ROOT_INDEX;
 
-        return _.uniq(result).sort();
+        return Array.from(matches).sort();
     }
 
     private getOutputs(index: StateIdx): Array<CharCode[]> {
