@@ -1,8 +1,8 @@
-export class TrieNode {
-    public failurelink?: TrieNode;
+export class AcTrieNode {
+    public failurelink?: AcTrieNode;
     public pattern?: string | boolean;
 
-    public children: TrieNode[] = [];
+    public children: AcTrieNode[] = [];
 
     public get isRoot() {
         return !this.code;
@@ -14,7 +14,8 @@ export class TrieNode {
 
     private base: number;
 
-    constructor(public code?: any, public index?: number) {
+    constructor(public code?: number,
+                public index?: number) {
     }
 
     /**
@@ -35,10 +36,27 @@ export class TrieNode {
         return this.base = base;
     }
 
+    findFailureLink(code: number) {
+        const link = this.failurelink;
+
+        const linkChildWithCode = link.findChildWithCode(code);
+        if (linkChildWithCode) {
+            return linkChildWithCode;
+        }
+        if (link.isRoot) {
+            return link;
+        }
+        return link.findFailureLink(code);
+    }
+
+    findChildWithCode(code: number): AcTrieNode {
+        return this.children.find(c => c.code === code);
+    }
+
     findOrCreateWithCode(code: any) {
-        let found = this.children.find(c => c.code === code);
+        let found = this.findChildWithCode(code);
         if (!found) {
-            found = new TrieNode(code);
+            found = new AcTrieNode(code);
             this.children.push(found);
         }
         return found;

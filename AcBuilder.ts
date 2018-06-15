@@ -1,18 +1,19 @@
 import * as _ from 'lodash';
 import { AhoCorasick } from './AhoCorasick';
 import { arrayToInt32Array, stringToBuffer } from './utils';
-import { TrieNode } from './TrieNode';
+import { AcTrieNode } from './AcTrieNode';
 
 const ROOT_INDEX = 1;
 
-type StateIndexArray = Array<number>;
+type StateIndex = number;
+type StateIndexes = StateIndex[];
 
 export interface RawAC {
-    base: StateIndexArray;
-    check: StateIndexArray;
-    failurelink: StateIndexArray;
-    output: StateIndexArray;
-    codemap: StateIndexArray;
+    base: StateIndexes;
+    check: StateIndexes;
+    failurelink: StateIndexes;
+    output: StateIndexes;
+    codemap: StateIndexes;
 }
 
 export type CompactedAC = {
@@ -24,31 +25,15 @@ export type ExportedAC = {
 }
 
 export interface AcState {
-    state: TrieNode;
+    state: AcTrieNode;
     index: number;
 }
-
-
-function findFailureLink(currentState: TrieNode, code: ArrayBuffer) {
-    const link = currentState.failurelink;
-    const index = _.findIndex(link.children, child => child.code === code);
-    if (index >= 0) {
-        return link.children[index];
-    }
-    if (link.isRoot) {
-        return link;
-    }
-    return findFailureLink(link, code);
-}
-
 
 function compactAC(ac: RawAC): CompactedAC {
     return _.mapValues(ac, arrayToInt32Array) as CompactedAC;
 }
 
-
 export class Builder {
-
     private ac: RawAC = {
         base: [],
         check: [],
@@ -57,7 +42,7 @@ export class Builder {
         codemap: [],
     };
 
-    private root = new TrieNode();
+    private root = new AcTrieNode();
 
     constructor(public words: string[] = []) {
     }
@@ -96,7 +81,7 @@ export class Builder {
         }
     }
 
-    private buildAC() {
+    private buildAC(): void {
         const baseTrie = this.root;
 
         const queue = [];
@@ -112,7 +97,7 @@ export class Builder {
             i += 1;
             _.forEach(current.children, (child) => {
                 // build failurelink
-                const failurelink = findFailureLink(current, child.code);
+                const failurelink = current.findFailureLink(child.code);
                 child.failurelink = failurelink;
                 this.ac.failurelink[child.index] = failurelink.index;
                 queue.push(child);
@@ -130,7 +115,7 @@ export class Builder {
         }
     }
 
-    private buildBaseTrie(): TrieNode {
+    private buildBaseTrie(): AcTrieNode {
         const sortedKeys: Array<Int8Array> = this.words.map(stringToBuffer).sort();
 
         _.forEach(sortedKeys, wb => this.addWordBuffer(wb));
@@ -138,9 +123,9 @@ export class Builder {
         return this.root;
     }
 
-    private addWordBuffer(wordBuffer: Int8Array) {
+    private addWordBuffer(wordBuffer: Int8Array): void {
         const lastCharacterNode = wordBuffer.reduce(
-            (node: TrieNode, charCode: number) => node.findOrCreateWithCode(charCode),
+            (node: AcTrieNode, charCode: number) => node.findOrCreateWithCode(charCode),
             this.root,
         );
         lastCharacterNode.pattern = true;
