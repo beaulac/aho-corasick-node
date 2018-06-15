@@ -1,31 +1,23 @@
-import * as bytebuffer from 'bytebuffer';
 import { CompactedAC, ExportedAC, RawAC } from './AcCommon';
 
 export function arrayToInt32Array(arr: number[]) {
     return Int32Array.from(arr);
 }
 
-export function int32ArrayToHex(int32Array: Int32Array) {
-    const b = bytebuffer.wrap(int32Array.buffer);
-    return b.toHex();
-}
-
-export function hexToInt32Array(hex: string) {
-    const b = bytebuffer.fromHex(hex);
-    return new Int32Array(b.toArrayBuffer());
+export function int32ArrayToBase64(int32Array: Int32Array) {
+    return Buffer.from(int32Array.buffer).toString('base64');
 }
 
 export function convert(codes: number[]) {
-    const arr = Int8Array.from(codes);
-    return bytebuffer.wrap(arr.buffer).toUTF8();
+    return Buffer.from(codes).toString('utf8');
 }
 
 export function stringToBuffer(s: string): Int8Array {
-    return new Int8Array(bytebuffer.fromUTF8(s).toBuffer());
+    return new Int8Array(Buffer.from(s, 'utf8'));
 }
 
 export function exportAC(ac: CompactedAC): ExportedAC {
-    return mapValues(ac, int32ArrayToHex) as ExportedAC;
+    return mapValues(ac, int32ArrayToBase64) as ExportedAC;
 }
 
 export function compactAC(ac: RawAC): CompactedAC {
