@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { AhoCorasick } from './AhoCorasick';
-import { arrayToInt32Array, stringToBuffer } from './utils';
+import { compactAC, stringToBuffer } from './utils';
 import { AcTrieNode } from './AcTrieNode';
 
 const ROOT_INDEX = 1;
@@ -29,9 +29,6 @@ export interface AcState {
     index: number;
 }
 
-function compactAC(ac: RawAC): CompactedAC {
-    return _.mapValues(ac, arrayToInt32Array) as CompactedAC;
-}
 
 export class Builder {
     private ac: RawAC = {
@@ -84,42 +81,37 @@ export class Builder {
     private buildAC(): void {
         const baseTrie = this.root;
 
-        const queue = [];
-        _.forEach(baseTrie.children, (child) => {
-            child.failurelink = baseTrie;
-            this.ac.failurelink[child.index] = baseTrie.index;
-            queue.push(child);
-        });
+        const queue: AcTrieNode[] = baseTrie.children.map(
+            (child) => {
+                child.failurelink = baseTrie;
+                this.ac.failurelink[child.index] = baseTrie.index;
+                return child;
+            },
+        );
 
         let i = 0;
         while (i < queue.length) {
             const current = queue[i];
             i += 1;
-            _.forEach(current.children, (child) => {
-                // build failurelink
-                const failurelink = current.findFailureLink(child.code);
-                child.failurelink = failurelink;
-                this.ac.failurelink[child.index] = failurelink.index;
-                queue.push(child);
+            current.children.forEach((child) => {
+                const link = current.findFailureLink(child.code);
 
-                // build output link
-                if (failurelink.pattern) {
-                    child.output = failurelink;
-                } else {
-                    child.output = failurelink.output;
-                }
+                child.setFailureLink(link);
+
+                this.ac.failurelink[child.index] = link.index;
                 if (child.output) {
                     this.ac.output[child.index] = child.output.index;
                 }
+                queue.push(child);
             });
         }
     }
 
     private buildBaseTrie(): AcTrieNode {
-        const sortedKeys: Array<Int8Array> = this.words.map(stringToBuffer).sort();
-
-        _.forEach(sortedKeys, wb => this.addWordBuffer(wb));
-
+        this.words
+            .map(stringToBuffer)
+            .sort()
+            .forEach(wb => this.addWordBuffer(wb));
         return this.root;
     }
 

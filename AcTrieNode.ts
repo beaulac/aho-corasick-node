@@ -1,5 +1,8 @@
 export class AcTrieNode {
+
     public failurelink?: AcTrieNode;
+    public output?: AcTrieNode;
+
     public pattern?: string | boolean;
 
     public children: AcTrieNode[] = [];
@@ -36,6 +39,11 @@ export class AcTrieNode {
         return this.base = base;
     }
 
+    setFailureLink(link: AcTrieNode) {
+        this.failurelink = link;
+        this.output = link.pattern ? link : link.output;
+    }
+
     findFailureLink(code: number) {
         const link = this.failurelink;
 
@@ -47,6 +55,12 @@ export class AcTrieNode {
             return link;
         }
         return link.findFailureLink(code);
+    }
+
+    private followFailure(code: number): AcTrieNode {
+        return this.findChildWithCode(code)
+               ||
+               this.isRoot ? this : this.findFailureLink(code);
     }
 
     findChildWithCode(code: number): AcTrieNode {
