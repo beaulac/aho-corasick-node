@@ -1,7 +1,7 @@
-import { compactAC, convert, int32ArrayToHex, stringToBuffer } from './utils';
+import { compactAC, convert, exportAC, stringToBuffer } from './utils';
 import * as _ from 'lodash';
-import { Builder, CompactedAC, RawAC } from './AcBuilder';
-import { CharCode, ROOT_INDEX, StateIdx } from './AcCommon';
+import { Builder} from './AcBuilder';
+import { CharCode, CompactedAC, RawAC, ROOT_INDEX, StateIdx } from './AcCommon';
 
 export interface AcMatch {
     pattern: string;
@@ -20,20 +20,22 @@ export class AhoCorasick {
         const result: string[] = [];
         const codes = stringToBuffer(text);
 
-        _.forEach(codes, (code) => {
-            const nextIndex = this.getNextIndex(code);
+        codes.forEach(
+            (code) => {
+                const nextIndex = this.getNextIndex(code);
 
-            const nextBase = this.data.base[nextIndex];
-            if (~~nextBase <= 0) {
-                result.push(convert(this.getPattern(nextIndex)));
-            }
+                const nextBase = this.data.base[nextIndex];
+                if (~~nextBase <= 0) {
+                    result.push(convert(this.getPattern(nextIndex)));
+                }
 
-            // Is this really needed?
-            this.getOutputs(nextIndex)
-                .forEach((output: CharCode[]) => result.push(convert(output)));
+                // Is this really needed?
+                this.getOutputs(nextIndex)
+                    .forEach((output: CharCode[]) => result.push(convert(output)));
 
-            this.currentState = nextIndex;
-        });
+                this.currentState = nextIndex;
+            },
+        );
 
         this.currentState = ROOT_INDEX;
 
@@ -82,7 +84,7 @@ export class AhoCorasick {
     }
 
     public export() {
-        return _.mapValues(this.data, int32ArrayToHex);
+        return exportAC(this.data);
     }
 
     public static from(buffers: RawAC) {

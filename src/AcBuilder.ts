@@ -1,30 +1,7 @@
-import * as _ from 'lodash';
 import { AhoCorasick } from './AhoCorasick';
 import { compactAC, stringToBuffer } from './utils';
 import { AcTrieNode } from './AcTrieNode';
-import { ROOT_INDEX, StateIndexes } from './AcCommon';
-
-export interface RawAC {
-    base: StateIndexes;
-    check: StateIndexes;
-    failurelink: StateIndexes;
-    output: StateIndexes;
-    codemap: StateIndexes;
-}
-
-export type CompactedAC = {
-    [K in keyof RawAC]: Int32Array
-}
-
-export type ExportedAC = {
-    [K in keyof RawAC]: string;
-}
-
-export interface AcState {
-    state: AcTrieNode;
-    index: number;
-}
-
+import { RawAC, ROOT_INDEX } from './AcCommon';
 
 export class Builder {
     private ac: RawAC = {
@@ -65,12 +42,14 @@ export class Builder {
                 this.ac.base[index] = state.pattern ? -v : v;
 
                 // set parent link on children
-                _.forEach(state.children, (child) => {
-                    const nextState = v + child.code;
-                    child.index = nextState;
-                    this.ac.check[nextState] = index;
-                    stack.push(child);
-                });
+                state.children.forEach(
+                    (child) => {
+                        const nextState = v + child.code;
+                        child.index = nextState;
+                        this.ac.check[nextState] = index;
+                        stack.push(child);
+                    },
+                );
             }
         }
     }

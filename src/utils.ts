@@ -1,6 +1,7 @@
 import * as bytebuffer from 'bytebuffer';
-import { CompactedAC, RawAC } from './AcBuilder';
 import * as _ from 'lodash';
+import { ExportedAC} from './AcCommon';
+import { CompactedAC, RawAC } from './AcCommon';
 
 export function arrayToInt32Array(arr: number[]) {
     return Int32Array.from(arr);
@@ -23,6 +24,10 @@ export function convert(codes: number[]) {
 
 export function stringToBuffer(s: string): Int8Array {
     return new Int8Array(bytebuffer.fromUTF8(s).toBuffer());
+}
+
+export function exportAC(ac: CompactedAC): ExportedAC {
+    return _.mapValues(ac, int32ArrayToHex) as ExportedAC;
 }
 
 export function compactAC(ac: RawAC): CompactedAC {
