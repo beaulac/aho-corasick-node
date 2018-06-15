@@ -9,9 +9,9 @@ export declare class AhoCorasick {
     private currentState;
     constructor(data: CompactedAC);
     match(text: string): AcMatch[];
-    private getOutputs(index);
-    private getPattern(index);
-    private getNextIndex(code);
-    private getNextIndexByFailure(ac, currentIndex, code);
-    private getBase(index);
+    private getOutputs;
+    private getPattern;
+    private getNextIndex;
+    private getNextIndexByFailure;
+    private getBase;
 }

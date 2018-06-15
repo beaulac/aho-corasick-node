@@ -20,11 +20,14 @@ var AcBuilder = (function () {
     AcBuilder.prototype.add = function (word) {
         this.words.push(word);
     };
-    AcBuilder.prototype.build = function () {
+    AcBuilder.prototype.export = function () {
         this.buildBaseTrie();
         this.buildDoubleArray();
         this.buildAC();
-        return new AhoCorasick_1.AhoCorasick(utils_1.compactAC(this.ac));
+        return utils_1.compactAC(this.ac);
+    };
+    AcBuilder.prototype.build = function () {
+        return new AhoCorasick_1.AhoCorasick(this.export());
     };
     AcBuilder.prototype.buildDoubleArray = function () {
         var _this = this;

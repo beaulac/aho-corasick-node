@@ -5,9 +5,10 @@ export declare class AcBuilder {
     private root;
     constructor(words?: string[]);
     add(word: string): void;
+    export(): import("../../../../../Users/abeaulac/projects/aho-corasick-node/src/AcCommon").CompactedAC;
     build(): AhoCorasick;
-    private buildDoubleArray();
-    private buildAC();
-    private buildBaseTrie();
-    private addWordBuffer(wordBuffer);
+    private buildDoubleArray;
+    private buildAC;
+    private buildBaseTrie;
+    private addWordBuffer;
 }

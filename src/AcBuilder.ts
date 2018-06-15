@@ -21,11 +21,15 @@ export class AcBuilder {
         this.words.push(word);
     }
 
-    build() {
+    export() {
         this.buildBaseTrie();
         this.buildDoubleArray();
         this.buildAC();
-        return new AhoCorasick(compactAC(this.ac));
+        return compactAC(this.ac);
+    }
+
+    build() {
+        return new AhoCorasick(this.export());
     }
 
     private buildDoubleArray() {

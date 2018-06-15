@@ -12,7 +12,7 @@ export declare class AcTrieNode {
     calcBase(parentIdxArray: number[]): number;
     setFailureLink(link: AcTrieNode): void;
     findFailureLink(code: number): AcTrieNode;
-    private followFailure(code);
+    private followFailure;
     findChildWithCode(code: number): AcTrieNode | undefined;
     findOrCreateWithCode(code: any): AcTrieNode;
 }
