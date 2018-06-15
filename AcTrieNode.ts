@@ -45,22 +45,18 @@ export class AcTrieNode {
     }
 
     findFailureLink(code: number) {
-        const link = this.failurelink;
-
-        const linkChildWithCode = link.findChildWithCode(code);
-        if (linkChildWithCode) {
-            return linkChildWithCode;
-        }
-        if (link.isRoot) {
-            return link;
-        }
-        return link.findFailureLink(code);
+        return this.failurelink.followFailure(code);
     }
 
     private followFailure(code: number): AcTrieNode {
-        return this.findChildWithCode(code)
-               ||
-               this.isRoot ? this : this.findFailureLink(code);
+        const childWithCode = this.findChildWithCode(code);
+        if (childWithCode) {
+            return childWithCode;
+        }
+        if (this.isRoot) {
+            return this;
+        }
+        return this.findFailureLink(code);
     }
 
     findChildWithCode(code: number): AcTrieNode {
