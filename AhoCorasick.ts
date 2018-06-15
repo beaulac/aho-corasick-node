@@ -2,11 +2,19 @@ import { compactAC, convert, int32ArrayToHex, stringToBuffer } from './utils';
 import * as _ from 'lodash';
 import { Builder, CompactedAC, RawAC } from './AcBuilder';
 
-const ROOT_INDEX = 1;
+type StateIdx = number;
+type CharCode = number;
+const ROOT_INDEX: StateIdx = 1;
+
+interface AcMatch {
+    pattern: string;
+    start: number;
+    end: number;
+}
 
 export class AhoCorasick {
 
-    private currentIndex = ROOT_INDEX;
+    private currentState: StateIdx = ROOT_INDEX;
 
     constructor(public data: CompactedAC) {
     }
@@ -22,19 +30,20 @@ export class AhoCorasick {
             if (~~nextBase <= 0) {
                 result.push(convert(this.getPattern(nextIndex)));
             }
-            const outputs = this.getOutputs(nextIndex);
-            _.forEach(outputs, (output) => {
-                result.push(convert(output));
-            });
-            this.currentIndex = nextIndex;
+
+            // Is this really needed?
+            // this.getOutputs(nextIndex)
+            //     .forEach((output) => result.push(convert(output)));
+
+            this.currentState = nextIndex;
         });
 
-        this.currentIndex = ROOT_INDEX;
+        this.currentState = ROOT_INDEX;
 
         return _.uniq(result).sort();
     }
 
-    private getOutputs(index) {
+    private getOutputs(index): Array<CharCode> {
         const output = this.data.output[index];
         if (output) {
             return [...this.getPattern(output), ...this.getOutputs(output)];
@@ -42,21 +51,21 @@ export class AhoCorasick {
         return [];
     }
 
-    getPattern(index): number[] {
+    getPattern(index): CharCode[] {
         return index > ROOT_INDEX
             ? [...this.getPattern(this.data.check[index]), this.data.codemap[index]]
             : [];
     }
 
-    private getNextIndex(code) {
-        const nextIndex = this.getBase(this.currentIndex) + code;
-        if (nextIndex && this.data.check[nextIndex] === this.currentIndex) {
+    private getNextIndex(code): StateIdx {
+        const nextIndex = this.getBase(this.currentState) + code;
+        if (nextIndex && this.data.check[nextIndex] === this.currentState) {
             return nextIndex;
         }
-        return this.getNextIndexByFailure(this.data, this.currentIndex, code);
+        return this.getNextIndexByFailure(this.data, this.currentState, code);
     }
 
-    private getNextIndexByFailure(ac, currentIndex, code) {
+    private getNextIndexByFailure(ac, currentIndex, code): StateIdx {
         let failure = ac.failurelink[currentIndex];
         if (!failure || !this.getBase(failure)) {
             failure = ROOT_INDEX;
@@ -71,7 +80,7 @@ export class AhoCorasick {
         return this.getNextIndexByFailure(ac, failure, code);
     }
 
-    private getBase(index) {
+    private getBase(index): StateIdx {
         return Math.abs(this.data.base[index]);
     }
 

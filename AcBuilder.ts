@@ -68,7 +68,7 @@ export class Builder {
 
                 this.ac.base[index] = state.pattern ? -v : v;
 
-                // set check
+                // set parent link on children
                 _.forEach(state.children, (child) => {
                     const nextState = v + child.code;
                     child.index = nextState;

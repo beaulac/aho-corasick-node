@@ -3,7 +3,10 @@ export class AcTrieNode {
     public failurelink?: AcTrieNode;
     public output?: AcTrieNode;
 
-    public pattern?: string | boolean;
+    /**
+     * Is this node the final character of a keyword?
+     */
+    public pattern?: boolean;
 
     public children: AcTrieNode[] = [];
 
@@ -26,13 +29,13 @@ export class AcTrieNode {
      * adding any child's code to the base
      * yields a unique state index.
      *
-     * @param {number[]} existing
+     * @param {number[]} parentIdxArray
      * @return {number}
      */
-    calcBase(existing: number[]) {
+    calcBase(parentIdxArray: number[]) {
         let base = Math.max(0, this.index - this.children[0].code) + 1;
 
-        while (this.children.some(c => !!existing[(base + c.code)])) {
+        while (this.children.some(c => !!parentIdxArray[(base + c.code)])) {
             ++base;
         }
 
