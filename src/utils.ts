@@ -8,10 +8,6 @@ export function int32ArrayToBase64(int32Array: Int32Array) {
     return Buffer.from(int32Array.buffer).toString('base64');
 }
 
-export function convert(codes: number[]) {
-    return Buffer.from(codes).toString('utf8');
-}
-
 export function stringToBuffer(s: string): Int8Array {
     return new Int8Array(Buffer.from(s, 'utf8'));
 }

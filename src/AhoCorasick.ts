@@ -1,20 +1,9 @@
-import { compactAC, convert, exportAC, stringToBuffer } from './utils';
-import { CharCode, CompactedAC, RawAC, ROOT_INDEX, StateIdx } from './AcCommon';
+import { CharCode, CompactedAC, ROOT_INDEX, StateIdx } from './AcCommon';
 
 export interface AcMatch {
     pattern: string;
     start: number;
     end: number;
-}
-
-function buildMatch(matchBuf: CharCode[], endPos: number): AcMatch {
-    const pattern = convert(matchBuf)
-        , startPos = endPos - (pattern.length - 1);
-    return {
-        pattern: pattern,
-        start: startPos,
-        end: endPos,
-    };
 }
 
 export class AhoCorasick {
@@ -26,7 +15,7 @@ export class AhoCorasick {
 
     public match(text: string): AcMatch[] {
         const matches = new Set<AcMatch>();
-        const codes = stringToBuffer(text);
+        const codes = str2ab(text);
 
         codes.forEach(
             (charCode: CharCode, pos: number) => {
@@ -58,7 +47,7 @@ export class AhoCorasick {
         return [];
     }
 
-    getPattern(index: StateIdx): CharCode[] {
+    private getPattern(index: StateIdx): CharCode[] {
         return index > ROOT_INDEX
             ? [...this.getPattern(this.data.check[index]), this.data.codemap[index]]
             : [];
@@ -91,12 +80,30 @@ export class AhoCorasick {
         return Math.abs(this.data.base[index]);
     }
 
-    public export() {
-        return exportAC(this.data);
+}
+
+function buildMatch(matchBuf: CharCode[], endPos: number): AcMatch {
+    const pattern = ab2str(matchBuf)
+        , startPos = endPos - (pattern.length - 1);
+    return {
+        pattern: pattern,
+        start: startPos,
+        end: endPos,
+    };
+}
+
+function ab2str(codes: number[]) {
+    return String.fromCharCode.apply(null, codes);
+}
+
+function str2ab(str: string): Int16Array {
+    const strLen = str.length
+        , buf = new ArrayBuffer(strLen * 2) // 2 bytes for each char
+        , bufView = new Int16Array(buf);
+
+    for (let i = 0; i < strLen; i++) {
+        bufView[i] = str.charCodeAt(i);
     }
 
-    public static from(buffers: RawAC) {
-        return new AhoCorasick(compactAC(buffers));
-    }
-
+    return bufView;
 }

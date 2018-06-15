@@ -1,17 +1,18 @@
 {
-  "name": "aho-corasick-node",
-  "version": "1.0.2",
-  "description": "",
-  "main": "aho-corasick.js",
+  "name": "aho-corasick-ts",
+  "version": "1.0.0",
+  "description": "Typescript implementation of Aho-Corasick",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/guofei/aho-corasick-node.git"
+    "url": "https://github.com/beaulac/aho-corasick-node.git"
   },
   "scripts": {
     "build": "tsc",
     "test": "mocha"
   },
-  "author": "guofei",
+  "author": "guofei + beaulac",
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
