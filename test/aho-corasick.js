@@ -1,11 +1,11 @@
 const assert = require('assert');
-const AhoCorasick = require('../dist/AhoCorasick').AhoCorasick;
+const { AhoCorasick, acBuilder } = require('../dist');
 
 describe('AhoCorasick', () => {
   let ac = null;
   before(() => {
     const keywords = ['b', 'ab', 'ba', 'nan'];
-    const builder = AhoCorasick.builder();
+    const builder = acBuilder();
     keywords.forEach(k => builder.add(k));
     ac = builder.build();
   });
@@ -25,8 +25,13 @@ describe('AhoCorasick', () => {
 
   describe('match()', () => {
     it('should match keywords', () => {
-      const text = 'banana';
-      assert.deepStrictEqual(ac.match(text), ['b', 'ba', 'nan']);
+        const text = 'banana';
+        const expectedMatches = [
+            { pattern: 'b', start: 0, end: 0 },
+            { pattern: 'ba', start: 0, end: 1 },
+            { pattern: 'nan', start: 2, end: 4 }
+        ];
+        assert.deepStrictEqual(ac.match(text), expectedMatches);
     });
 
     it('should match empty keywords', () => {

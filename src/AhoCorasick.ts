@@ -1,11 +1,20 @@
 import { compactAC, convert, exportAC, stringToBuffer } from './utils';
-import { Builder } from './AcBuilder';
 import { CharCode, CompactedAC, RawAC, ROOT_INDEX, StateIdx } from './AcCommon';
 
 export interface AcMatch {
     pattern: string;
     start: number;
     end: number;
+}
+
+function buildMatch(matchBuf: CharCode[], endPos: number): AcMatch {
+    const pattern = convert(matchBuf)
+        , startPos = endPos - (pattern.length - 1);
+    return {
+        pattern: pattern,
+        start: startPos,
+        end: endPos,
+    };
 }
 
 export class AhoCorasick {
@@ -15,22 +24,22 @@ export class AhoCorasick {
     constructor(public data: CompactedAC) {
     }
 
-    public match(text: string): string[] {
-        const matches = new Set<string>();
+    public match(text: string): AcMatch[] {
+        const matches = new Set<AcMatch>();
         const codes = stringToBuffer(text);
 
         codes.forEach(
-            (code) => {
-                const nextIndex = this.getNextIndex(code);
+            (charCode: CharCode, pos: number) => {
+                const nextIndex = this.getNextIndex(charCode);
 
                 const nextBase = this.data.base[nextIndex];
                 if (~~nextBase <= 0) {
-                    matches.add(convert(this.getPattern(nextIndex)));
+                    matches.add(buildMatch(this.getPattern(nextIndex), pos));
                 }
 
                 // Is this really needed?
                 this.getOutputs(nextIndex)
-                    .forEach((output: CharCode[]) => matches.add(convert(output)));
+                    .forEach((output) => matches.add(buildMatch(output, pos)));
 
                 this.currentState = nextIndex;
             },
@@ -90,7 +99,4 @@ export class AhoCorasick {
         return new AhoCorasick(compactAC(buffers));
     }
 
-    public static builder() {
-        return new Builder();
-    }
 }

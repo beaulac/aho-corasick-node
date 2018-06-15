@@ -3,7 +3,7 @@ import { compactAC, stringToBuffer } from './utils';
 import { AcTrieNode } from './AcTrieNode';
 import { RawAC, ROOT_INDEX } from './AcCommon';
 
-export class Builder {
+export class AcBuilder {
     private ac: RawAC = {
         base: [],
         check: [],
