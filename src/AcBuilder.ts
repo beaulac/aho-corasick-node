@@ -2,11 +2,7 @@ import * as _ from 'lodash';
 import { AhoCorasick } from './AhoCorasick';
 import { compactAC, stringToBuffer } from './utils';
 import { AcTrieNode } from './AcTrieNode';
-
-const ROOT_INDEX = 1;
-
-type StateIndex = number;
-type StateIndexes = StateIndex[];
+import { ROOT_INDEX, StateIndexes } from './AcCommon';
 
 export interface RawAC {
     base: StateIndexes;
@@ -39,7 +35,7 @@ export class Builder {
         codemap: [],
     };
 
-    private root = new AcTrieNode(null, ROOT_INDEX);
+    private root = new AcTrieNode(0, ROOT_INDEX);
 
     constructor(public words: string[] = []) {
     }
@@ -57,8 +53,8 @@ export class Builder {
 
     private buildDoubleArray() {
         const stack: AcTrieNode[] = [this.root];
-        while (!_.isEmpty(stack)) {
-            const state = stack.pop();
+        while (stack.length > 0) {
+            const state = stack.pop() as AcTrieNode; // Already empty checked.
             const index = state.index;
             if (state.code) {
                 this.ac.codemap[index] = state.code;
@@ -81,7 +77,7 @@ export class Builder {
 
     private buildAC(): void {
         const queue: AcTrieNode[] = this.root.children.map(
-            (child) => {
+            (child: AcTrieNode) => {
                 child.failurelink = this.root;
                 this.ac.failurelink[child.index] = this.root.index;
                 return child;

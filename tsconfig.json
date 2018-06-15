@@ -1,15 +1,27 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "dist",
     "module": "commonjs",
     "moduleResolution": "node",
+    "declaration": true,
+    "strict": true,
+    "removeComments": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowSyntheticDefaultImports": true,
+    "noEmitOnError": true,
+    "pretty": true,
+    "skipLibCheck": true,
+    "typeRoots": [
+      "node_modules/@types"
+    ],
     "lib": [
       "es6"
     ],
     "target": "es5",
     "sourceMap": true
   },
-  "exclude": [
-    "node_modules"
+  "include": [
+    "./src/*.ts"
   ]
 }

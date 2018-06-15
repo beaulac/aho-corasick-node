@@ -18,10 +18,10 @@ export class AcTrieNode {
         return this.children.length > 0;
     }
 
-    private base: number;
+    private base?: number;
 
-    constructor(public code?: number,
-                public index?: number) {
+    constructor(public code: number,
+                public index: number) {
     }
 
     /**
@@ -48,6 +48,9 @@ export class AcTrieNode {
     }
 
     findFailureLink(code: number) {
+        if (!this.failurelink) {
+            throw Error('Undefined failurelink');
+        }
         return this.failurelink.followFailure(code);
     }
 
@@ -62,14 +65,14 @@ export class AcTrieNode {
         return this.findFailureLink(code);
     }
 
-    findChildWithCode(code: number): AcTrieNode {
+    findChildWithCode(code: number): AcTrieNode | undefined {
         return this.children.find(c => c.code === code);
     }
 
     findOrCreateWithCode(code: any) {
         let found = this.findChildWithCode(code);
         if (!found) {
-            found = new AcTrieNode(code);
+            found = new AcTrieNode(code, 0);
             this.children.push(found);
         }
         return found;
