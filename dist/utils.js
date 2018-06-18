@@ -27,4 +27,16 @@ function mapValues(obj, cb) {
         return acc;
     }, {});
 }
+function ab2str(codes) {
+    return String.fromCharCode.apply(null, codes);
+}
+exports.ab2str = ab2str;
+function str2ab(str) {
+    var strLen = str.length, buf = new ArrayBuffer(strLen * 2), bufView = new Int16Array(buf);
+    for (var i = 0; i < strLen; i++) {
+        bufView[i] = str.charCodeAt(i);
+    }
+    return bufView;
+}
+exports.str2ab = str2ab;
 //# sourceMappingURL=utils.js.map

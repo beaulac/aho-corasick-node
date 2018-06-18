@@ -7,7 +7,6 @@ var AcBuilder_1 = require("./AcBuilder");
 var AhoCorasick_1 = require("./AhoCorasick");
 var utils_1 = require("./utils");
 __export(require("./AcCommon"));
-__export(require("./AhoCorasick"));
 function acBuilder() {
     return new AcBuilder_1.AcBuilder();
 }

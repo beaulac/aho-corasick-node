@@ -32,3 +32,19 @@ function mapValues<T extends object, TResult>(obj: T,
                 {} as { [P in keyof T]: TResult },
         );
 }
+
+export function ab2str(codes: number[]): string {
+    return String.fromCharCode.apply(null, codes);
+}
+
+export function str2ab(str: string): Int16Array {
+    const strLen = str.length
+        , buf = new ArrayBuffer(strLen * 2) // 2 bytes for each char
+        , bufView = new Int16Array(buf);
+
+    for (let i = 0; i < strLen; i++) {
+        bufView[i] = str.charCodeAt(i);
+    }
+
+    return bufView;
+}

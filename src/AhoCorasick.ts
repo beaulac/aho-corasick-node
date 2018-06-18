@@ -1,16 +1,12 @@
 import { CharCode, CompactedAC, ROOT_INDEX, StateIdx } from './AcCommon';
+import { str2ab } from './utils';
+import { AcMatch, AcMatcher, buildMatch } from './AcMatch';
 
-export interface AcMatch {
-    pattern: string;
-    start: number;
-    end: number;
-}
-
-export class AhoCorasick {
+export class AhoCorasick implements AcMatcher {
 
     private currentState: StateIdx = ROOT_INDEX;
 
-    constructor(public data: CompactedAC) {
+    constructor(private data: CompactedAC) {
     }
 
     public match(text: string): AcMatch[] {
@@ -82,28 +78,3 @@ export class AhoCorasick {
 
 }
 
-function buildMatch(matchBuf: CharCode[], endPos: number): AcMatch {
-    const pattern = ab2str(matchBuf)
-        , startPos = endPos - (pattern.length - 1);
-    return {
-        pattern: pattern,
-        start: startPos,
-        end: endPos,
-    };
-}
-
-function ab2str(codes: number[]) {
-    return String.fromCharCode.apply(null, codes);
-}
-
-function str2ab(str: string): Int16Array {
-    const strLen = str.length
-        , buf = new ArrayBuffer(strLen * 2) // 2 bytes for each char
-        , bufView = new Int16Array(buf);
-
-    for (let i = 0; i < strLen; i++) {
-        bufView[i] = str.charCodeAt(i);
-    }
-
-    return bufView;
-}

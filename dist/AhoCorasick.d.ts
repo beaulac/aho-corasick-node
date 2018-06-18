@@ -1,11 +1,7 @@
 import { CompactedAC } from './AcCommon';
-export interface AcMatch {
-    pattern: string;
-    start: number;
-    end: number;
-}
-export declare class AhoCorasick {
-    data: CompactedAC;
+import { AcMatch, AcMatcher } from './AcMatch';
+export declare class AhoCorasick implements AcMatcher {
+    private data;
     private currentState;
     constructor(data: CompactedAC);
     match(text: string): AcMatch[];

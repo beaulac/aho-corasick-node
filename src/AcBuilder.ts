@@ -1,7 +1,8 @@
 import { AhoCorasick } from './AhoCorasick';
 import { compactAC, stringToBuffer } from './utils';
 import { AcTrieNode } from './AcTrieNode';
-import { RawAC, ROOT_INDEX } from './AcCommon';
+import { CompactedAC, RawAC, ROOT_INDEX } from './AcCommon';
+import { AcMatcher } from './AcMatch';
 
 export class AcBuilder {
     private ac: RawAC = {
@@ -21,14 +22,14 @@ export class AcBuilder {
         this.words.push(word);
     }
 
-    export() {
+    export(): CompactedAC {
         this.buildBaseTrie();
         this.buildDoubleArray();
         this.buildAC();
         return compactAC(this.ac);
     }
 
-    build() {
+    build(): AcMatcher {
         return new AhoCorasick(this.export());
     }
 

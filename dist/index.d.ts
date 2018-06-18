@@ -1,7 +1,7 @@
 import { AcBuilder } from './AcBuilder';
-import { AhoCorasick } from './AhoCorasick';
 import { RawAC } from './AcCommon';
+import { AcMatcher } from './AcMatch';
 export * from './AcCommon';
-export * from './AhoCorasick';
+export { AcMatch, AcMatcher } from './AcMatch';
 export declare function acBuilder(): AcBuilder;
-export declare function from(buffers: RawAC): AhoCorasick;
+export declare function from(buffers: RawAC): AcMatcher;
